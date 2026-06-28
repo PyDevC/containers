@@ -1,0 +1,21 @@
+FROM basefedora
+
+RUN echo "max_parallel_downloads=10" >> /etc/dnf/dnf.conf && \
+    echo "fastestmirror=True" >> /etc/dnf/dnf.conf && \
+    dnf update -y && \
+    dnf install -y python3 git curl wget bash zsh tmux python3-wheel vim langpacks-en && \
+    dnf clean all
+
+ARG USERNAME=pydevc
+ENV HOME="/home/${USERNAME}"
+
+USER ${USERNAME}
+WORKDIR ${HOME}
+
+RUN mkdir -p personal work
+
+RUN RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended && \
+    git clone --depth 1 https://github.com/zdharma-continuum/fast-syntax-highlighting.git \
+    ${HOME}/.oh-my-zsh/custom/plugins/fast-syntax-highlighting
+
+CMD ["/bin/zsh"]

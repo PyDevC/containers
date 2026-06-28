@@ -1,0 +1,20 @@
+FROM baseubuntu
+
+RUN apt-get update && apt-get install -y --no-install-recommends \
+        python3 git curl wget ca-certificates \
+        bash zsh tmux sudo vim language-pack-en
+
+ARG USERNAME=pydevc
+ENV HOME="/home/${USERNAME}"
+
+USER ${USERNAME}
+WORKDIR ${HOME}
+
+RUN mkdir -p personal work && \
+    git clone --depth 1 https://github.com/PyDevC/pytorch_dev_env_setup ${HOME}/pytorch_dev_env_setup
+
+RUN RUNZSH=no sh -c "$(curl -fsSL https://raw.githubusercontent.com/ohmyzsh/ohmyzsh/master/tools/install.sh)" "" --unattended && \
+    git clone --depth 1 https://github.com/zdharma-continuum/fast-syntax-highlighting.git \
+    ${HOME}/.oh-my-zsh/custom/plugins/fast-syntax-highlighting
+
+CMD ["/bin/zsh"]
