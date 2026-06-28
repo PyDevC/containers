@@ -1,0 +1,80 @@
+#!/usr/bin/env bash
+set -euo pipefail
+
+DEV_ENV="${DEV_ENV:-$(cd "$(dirname "$(readlink -f "$0")")" && pwd)}"
+source "${DEV_ENV}/dev-env"
+
+usage() {
+    cat <<EOF
+Usage: dev-cont <command> [options]
+
+Commands:
+  check              Check which base containers exist / are missing
+  build base         Build missing base containers (basefedora, baseubuntu)
+  build desktop      Build full desktop environment (bases + derived images)
+  list               Show all base and desktop containers with status
+  help               Show this help
+EOF
+}
+
+main() {
+    local cmd="${1:-help}"
+    local sub="${2:-}"
+
+    case "$cmd" in
+        check)
+            local missing
+            missing=($(check_base_containers))
+            if [ ${#missing[@]} -eq 0 ]; then
+                echo "All base containers are present."
+            else
+                echo "Missing base containers: ${missing[*]}"
+                echo "Run 'dev-cont build base' to build them."
+            fi
+            ;;
+
+        build)
+            case "$sub" in
+                base)
+                    build_base_containers
+                    ;;
+                desktop|"")
+                    setup_desktop_env
+                    ;;
+                *)
+                    echo "Unknown build target: $sub"
+                    echo "Usage: dev-cont build [base|desktop]"
+                    exit 1
+                    ;;
+            esac
+            ;;
+
+        list)
+            echo "── Base containers ──"
+            for img in basefedora baseubuntu; do
+                if podman image exists "$img"; then
+                    echo "  ✓ $img"
+                else
+                    echo "  ✗ $img"
+                fi
+            done
+
+            echo ""
+            echo "── Desktop containers ──"
+            for item in "${DEV_CONTAINERS[@]}"; do
+                local tag="${item%%:*}"
+                if podman image exists "$tag"; then
+                    echo "  ✓ $tag"
+                else
+                    echo "  ✗ $tag"
+                fi
+            done
+            ;;
+
+        help|*)
+            usage
+            ;;
+    esac
+}
+
+main "$@"
