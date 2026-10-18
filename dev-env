@@ -1,1 +1,43 @@
 #!/usr/bin/env bash
+
+DEV_CONTAINERS=(
+    "devenv:basefedora"
+    "llvm:baseubuntu"
+    "pytorch:baseubuntu"
+    "gbite:baseubuntu"
+)
+
+check_base_containers() {
+    local missing=()
+    for img in basefedora baseubuntu; do
+        if ! podman image exists "$img"; then
+            missing+=("$img")
+        fi
+    done
+    printf '%s\n' "${missing[@]}"
+}
+
+build_base_containers() {
+    local dir
+    dir="$(dirname "$(readlink -f "$0")")"
+    bash "${dir}/scripts/generate_dev_containers.sh" fedora
+    bash "${dir}/scripts/generate_dev_containers.sh" ubuntu
+}
+
+setup_desktop_env() {
+    local dir
+    dir="$(dirname "$(readlink -f "$0")")"
+
+    local missing
+    missing=($(check_base_containers))
+    if [ ${#missing[@]} -gt 0 ]; then
+        echo "Building missing base containers: ${missing[*]}"
+        build_base_containers
+    fi
+
+    for item in "${DEV_CONTAINERS[@]}"; do
+        local tag="${item%%:*}"
+        echo "Building $tag ..."
+        podman build -t "dev-$tag" -f "${dir}/images/Containerfile.${tag}" "${dir}/images"
+    done
+}
