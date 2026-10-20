@@ -2,7 +2,7 @@ FROM baseubuntu
 
 RUN apt-get update && apt-get install -y --no-install-recommends \
         python3 git curl wget ca-certificates \
-        bash zsh tmux sudo vim language-pack-en
+        bash fzf zsh tmux sudo vim language-pack-en
 
 ARG USERNAME=pydevc
 ENV HOME="/home/${USERNAME}"

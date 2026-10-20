@@ -3,7 +3,7 @@ FROM basefedora
 RUN echo "max_parallel_downloads=10" >> /etc/dnf/dnf.conf && \
     echo "fastestmirror=True" >> /etc/dnf/dnf.conf && \
     dnf update -y && \
-    dnf install -y python3 git curl wget bash zsh tmux python3-wheel vim langpacks-en && \
+    dnf install -y python3 git curl fzf wget bash zsh tmux python3-wheel vim langpacks-en && \
     dnf clean all
 
 ARG USERNAME=pydevc
